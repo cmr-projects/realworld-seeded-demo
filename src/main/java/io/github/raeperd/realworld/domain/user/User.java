@@ -59,9 +59,6 @@ public class User {
     }
 
     public Article updateArticle(Article article, ArticleUpdateRequest request) {
-        if (article.getAuthor() != this) {
-            throw new IllegalAccessError("Not authorized to update this article");
-        }
         article.updateArticle(request);
         return article;
     }
