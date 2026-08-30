@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 
 import static java.util.Optional.ofNullable;
+import static org.springframework.http.ResponseEntity.noContent;
 
 @RestController
 class CommentRestController {
@@ -40,5 +41,15 @@ class CommentRestController {
     public void deleteComment(@AuthenticationPrincipal UserJWTPayload jwtPayload,
                               @PathVariable String slug, @PathVariable long id) {
         commentService.deleteCommentById(jwtPayload.getUserId(), slug, id);
+    }
+
+    @PutMapping("/articles/{slug}/comments/{id}")
+    public org.springframework.http.ResponseEntity<Void> updateComment(
+            @AuthenticationPrincipal UserJWTPayload jwtPayload,
+            @PathVariable String slug,
+            @PathVariable long id,
+            @Valid @RequestBody CommentPutRequestDTO dto) {
+        commentService.updateComment(jwtPayload.getUserId(), slug, id, dto.body());
+        return noContent().build();
     }
 }

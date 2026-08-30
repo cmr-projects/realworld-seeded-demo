@@ -17,10 +17,13 @@ public class CommentService {
 
     private final UserFindService userFindService;
     private final ArticleFindService articleFindService;
+    private final CommentRepository commentRepository;
 
-    CommentService(UserFindService userFindService, ArticleFindService articleFindService) {
+    CommentService(UserFindService userFindService, ArticleFindService articleFindService,
+                   CommentRepository commentRepository) {
         this.userFindService = userFindService;
         this.articleFindService = articleFindService;
+        this.commentRepository = commentRepository;
     }
 
     @Transactional
@@ -51,5 +54,15 @@ public class CommentService {
         userFindService.findById(userId)
                 .ifPresentOrElse(user -> user.deleteArticleComment(articleContainsComments, commentId),
                         () -> {throw new NoSuchElementException();});
+    }
+
+    @Transactional
+    public void updateComment(long userId, String slug, long commentId, String body) {
+        userFindService.findById(userId).orElseThrow(NoSuchElementException::new);
+        articleFindService.getArticleBySlug(slug).orElseThrow(NoSuchElementException::new);
+        final var comment = commentRepository.findById(commentId)
+                .orElseThrow(NoSuchElementException::new);
+        comment.updateBody(body);
+        commentRepository.save(comment);
     }
 }
