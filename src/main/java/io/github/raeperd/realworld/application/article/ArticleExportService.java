@@ -30,6 +30,7 @@ class ArticleExportService {
             throw new AccessDeniedException("Only the article author can export it");
         }
 
+        Files.createDirectories(exportDirectory);
         final var exportPath = exportDirectory.resolve(filename);
         Files.createDirectories(exportPath.getParent());
         Files.writeString(exportPath, markdown(article));
