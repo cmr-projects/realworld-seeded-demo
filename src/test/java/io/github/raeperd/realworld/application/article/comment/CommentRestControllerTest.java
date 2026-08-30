@@ -16,7 +16,9 @@ import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
 
 @WebMvcTest(CommentRestController.class)
 class CommentRestControllerTest {
@@ -50,5 +52,16 @@ class CommentRestControllerTest {
                 .andExpect(status().isOk());
 
         then(commentService).should(times(1)).getComments(anyLong(), eq(ARTICLE_SLUG));
+    }
+
+    @WithMockJWTUser(userId = 1000L)
+    @Test
+    void when_editing_a_comment_expect_called_commentService() throws Exception {
+        mockMvc.perform(put("/articles/article-slug/comments/2000")
+                        .contentType(APPLICATION_JSON)
+                        .content("{\"comment\":{\"body\":\"edited body\"}}"))
+                .andExpect(status().isNoContent());
+
+        then(commentService).should().updateComment(0L, "article-slug", 2000L, "edited body");
     }
 }

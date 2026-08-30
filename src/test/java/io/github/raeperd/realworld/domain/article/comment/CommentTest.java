@@ -41,6 +41,15 @@ class CommentTest {
                 .hasSameHashCodeAs(commentRight);
     }
 
+    @Test
+    void when_editing_a_comment_expect_the_new_body(@Mock Article article, @Mock User author) {
+        final var comment = new Comment(article, author, "original body");
+
+        comment.updateBody("edited body");
+
+        assertThat(comment.getBody()).isEqualTo("edited body");
+    }
+
     private static Stream<Arguments> provideDifferentComments() {
         var articleSample = mock(Article.class);
         var authorSample = mock(User.class);
