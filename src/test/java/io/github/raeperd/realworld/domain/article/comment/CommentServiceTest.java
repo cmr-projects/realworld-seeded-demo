@@ -31,10 +31,12 @@ class CommentServiceTest {
     private UserFindService userFindService;
     @Mock
     private ArticleFindService articleFindService;
+    @Mock
+    private CommentRepository commentRepository;
 
     @BeforeEach
     private void initializeService() {
-        commentService = new CommentService(userFindService, articleFindService);
+        commentService = new CommentService(userFindService, articleFindService, commentRepository);
     }
 
     @Test
@@ -81,6 +83,47 @@ class CommentServiceTest {
         commentService.deleteCommentById(1L, "slug", 2L);
 
         then(user).should(times(1)).deleteArticleComment(article, 2L);
+    }
+
+    @Test
+    void given_existing_user_article_and_comment_then_update_comment(
+            @Mock User user, @Mock Article article, @Mock Comment comment) {
+        given(userFindService.findById(1L)).willReturn(of(user));
+        given(articleFindService.getArticleBySlug("slug")).willReturn(of(article));
+        given(commentRepository.findById(2L)).willReturn(of(comment));
+
+        commentService.updateComment(1L, "slug", 2L, "edited body");
+
+        then(comment).should().updateBody("edited body");
+        then(commentRepository).should().save(comment);
+    }
+
+    @Test
+    void when_updating_and_user_is_missing_expect_NoSuchElementException() {
+        given(userFindService.findById(1L)).willReturn(empty());
+
+        assertThatThrownBy(() -> commentService.updateComment(1L, "slug", 2L, "edited body"))
+                .isInstanceOf(NoSuchElementException.class);
+    }
+
+    @Test
+    void when_updating_and_article_is_missing_expect_NoSuchElementException(@Mock User user) {
+        given(userFindService.findById(1L)).willReturn(of(user));
+        given(articleFindService.getArticleBySlug("slug")).willReturn(empty());
+
+        assertThatThrownBy(() -> commentService.updateComment(1L, "slug", 2L, "edited body"))
+                .isInstanceOf(NoSuchElementException.class);
+    }
+
+    @Test
+    void when_updating_and_comment_is_missing_expect_NoSuchElementException(
+            @Mock User user, @Mock Article article) {
+        given(userFindService.findById(1L)).willReturn(of(user));
+        given(articleFindService.getArticleBySlug("slug")).willReturn(of(article));
+        given(commentRepository.findById(2L)).willReturn(empty());
+
+        assertThatThrownBy(() -> commentService.updateComment(1L, "slug", 2L, "edited body"))
+                .isInstanceOf(NoSuchElementException.class);
     }
 
 }
